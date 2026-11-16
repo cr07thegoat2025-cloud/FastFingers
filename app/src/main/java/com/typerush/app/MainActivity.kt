@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
@@ -52,7 +53,22 @@ fun TypeRushApp() {
     var remaining by remember { mutableIntStateOf(60) }
     var running by remember { mutableStateOf(false) }
     var finished by remember { mutableStateOf(false) }
-    var history by remember { mutableStateOf(listOf<Pair<Int, Int>>()) }
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("typerush", 0) }
+    var history by remember {
+        mutableStateOf(prefs.getString("history", "").orEmpty().split(";").mapNotNull { row ->
+            val parts = row.split(",")
+            if (parts.size == 2) {
+                val score = parts[0].toIntOrNull()
+                val accuracyValue = parts[1].toIntOrNull()
+                if (score != null && accuracyValue != null) score to accuracyValue else null
+            } else null
+        })
+    }
+    fun addResult(score: Int, accuracyValue: Int) {
+        history = (listOf(score to accuracyValue) + history).take(20)
+        prefs.edit().putString("history", history.joinToString(";") { "${it.first},${it.second}" }).apply()
+    }
     var roomCode by remember { mutableStateOf("") }
     var playerName by remember { mutableStateOf("Player") }
     var raceStatus by remember { mutableStateOf("Create a room or join a friend's room code.") }
@@ -69,7 +85,7 @@ fun TypeRushApp() {
         } else if (running && remaining == 0) {
             running = false
             finished = true
-            history = listOf(wpm to accuracy) + history
+            addResult(wpm, accuracy)
         }
     }
 
@@ -141,8 +157,10 @@ fun TypeRushApp() {
                             typed = value
                             if (value.length == passage.length) {
                                 running = false; finished = true
-                                val score = if (elapsed <= 0) 0 else ((correct / 5f) / (elapsed / 60f)).roundToInt()
-                                history = listOf(score to accuracy) + history
+                                val finalCorrect = value.indices.count { value[it] == passage[it] }
+                                val finalAccuracy = if (value.isEmpty()) 100 else (finalCorrect * 100f / value.length).roundToInt()
+                                val score = if (elapsed <= 0) 0 else ((finalCorrect / 5f) / (elapsed / 60f)).roundToInt()
+                                addResult(score, finalAccuracy)
                             }
                         }
                     }, enabled = !finished, textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 16.sp), modifier = Modifier.fillMaxWidth().background(Panel, RoundedCornerShape(12.dp)).padding(16.dp), decorationBox = { inner ->
