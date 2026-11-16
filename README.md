@@ -1,23 +1,24 @@
 # TypeRush
 
-A native Android typing-speed test and multiplayer typing race app.
+A native Android typing-speed test app built with Kotlin and Jetpack Compose.
 
-## Features
+## Current MVP
 
-- Offline typing tests with 15, 30, 60, and 120 second durations
-- Live WPM, accuracy, and error tracking
-- Character-level correct/incorrect highlighting
-- Local result history
-- Multiplayer races with private rooms and live progress
+- Offline typing tests with 15, 30, 60 and 120 second durations
+- Live WPM, accuracy and error counters
+- Correct and incorrect character highlighting
+- Random practice passages
+- A recent-results list for the current app session
+- Dark interface with a high-contrast lime accent
 
 ## Android app
 
-Native Kotlin and Jetpack Compose. Package: `com.typerush.app`.
+Package: `com.typerush.app`. Open the project in Android Studio with JDK 17.
 
-## Multiplayer setup
+## Build and APK
 
-Multiplayer requires a Firebase project, Android app registration for `com.typerush.app`, Firebase Authentication (anonymous sign-in), and Realtime Database. Place `google-services.json` in `app/`. Never commit service-account credentials or private keys.
+GitHub Actions builds a debug APK on pushes and uploads it as a workflow artifact. Push a version tag such as `v1.0.0` to create a GitHub Release with the APK attached.
 
-## Build
+## Not implemented yet
 
-Open in Android Studio with JDK 17. GitHub Actions builds a debug APK on pushes and publishes a release APK when a version tag is pushed.
+Multiplayer room creation, joining, synchronized races, live opponent progress, and persistent on-device history still need implementation and testing. The multiplayer screen is currently a UI placeholder; it does not connect players yet.
